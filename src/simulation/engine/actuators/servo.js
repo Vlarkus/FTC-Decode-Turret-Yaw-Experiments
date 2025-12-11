@@ -1,6 +1,6 @@
 export const ServoDirection = {
   FORWARD: "FORWARD",
-  REVERSE: "REVERSE",
+  REVERSE:  "REVERSE",
 };
 
 export class Servo {
@@ -9,11 +9,12 @@ export class Servo {
   #direction = ServoDirection.FORWARD;
   #scaledMin = 0;
   #scaledMax = 1;
-  #enabled = true;
+  #enabled   = true;
 
-  // ===== PHYSICAL (HIDDEN) STATE =====
+  // ===== PHYSICAL STATE =====
   #physicalPosition = 0;      // [0–1]
-  #maxSpeed = 1.0;            // range per second (0–1 per second)
+  #maxSpeed = 1.0;            // [0–1] / second
+  #movement_threshold = 0.00001;  // ignore tiny commands
 
   constructor({ maxSpeed = 1.0 } = {}) {
     this.#maxSpeed = maxSpeed;
@@ -26,13 +27,23 @@ export class Servo {
   setPosition(p) {
     if (!this.#enabled) return;
 
+    // Clamp & normalize input
     p = clamp(p, 0, 1);
 
+    // Handle direction reversal
     if (this.#direction === ServoDirection.REVERSE) {
       p = 1 - p;
     }
 
-    this.#commandedPosition = lerp(this.#scaledMin, this.#scaledMax, p);
+    // Convert normalized p into scaled servo range
+    const scaled = lerp(this.#scaledMin, this.#scaledMax, p);
+
+    // Ignore tiny changes (movement threshold)
+    if (Math.abs(scaled - this.#commandedPosition) < this.#movement_threshold) {
+      return;
+    }
+
+    this.#commandedPosition = scaled;
   }
 
   getPosition() {
@@ -53,7 +64,7 @@ export class Servo {
   }
 
   // ================================
-  // SPEED CONTROL (NEW)
+  // SPEED CONTROL
   // ================================
 
   setMaxSpeed(speed) {
@@ -71,7 +82,7 @@ export class Servo {
   update(dt_seconds) {
     if (!this.#enabled) return;
 
-    const error = this.#commandedPosition - this.#physicalPosition;
+    const error   = this.#commandedPosition - this.#physicalPosition;
     const maxStep = this.#maxSpeed * dt_seconds;
 
     const step = clamp(error, -maxStep, maxStep);

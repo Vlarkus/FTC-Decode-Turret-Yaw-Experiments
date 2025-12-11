@@ -2,16 +2,20 @@ export function renderScene(ctx, sim, width, height) {
   ctx.clearRect(0, 0, width, height);
 
   ctx.save();
-  ctx.translate(width / 2, height / 2); // origin = camera position
+  ctx.translate(width / 2, height / 2);
 
   drawFOV(ctx, sim.cameraHeading, sim.camera.fov, width, height);
   drawCrosshair(ctx, sim.camera.crosshairAngle, width, height);
   drawCamera(ctx);
-  
+
+  drawLineToTarget(ctx, sim);          
+  drawPerpendicularProjection(ctx, sim); 
+
   drawTarget(ctx, sim.target);
 
   ctx.restore();
 }
+
 
 
 // -----------------------------
@@ -75,6 +79,54 @@ function drawTarget(ctx, target) {
   ctx.fillStyle = "red";
   ctx.beginPath();
   ctx.arc(target.x, target.y, 8, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawLineToTarget(ctx, sim) {
+  if (!sim.camera.tv) return;
+
+  ctx.strokeStyle = "orange";
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([6, 4]);
+
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(sim.target.x, sim.target.y);
+  ctx.stroke();
+
+  ctx.setLineDash([]); // reset
+}
+
+function drawPerpendicularProjection(ctx, sim) {
+  if (!sim.camera.tv) return;
+
+  const a = degToRad(sim.camera.crosshairAngle);
+  const dirX = Math.cos(a);
+  const dirY = Math.sin(a);
+
+  const tx = sim.target.x;
+  const ty = sim.target.y;
+
+  // Projection scalar (dot product on unit ray)
+  const proj = tx * dirX + ty * dirY;
+
+  // Point on the crosshair line
+  const px = dirX * proj;
+  const py = dirY * proj;
+
+  ctx.strokeStyle = "cyan";
+  ctx.setLineDash([6, 4]);
+  ctx.lineWidth = 1.5;
+
+  ctx.beginPath();
+  ctx.moveTo(tx, ty);   // target
+  ctx.lineTo(px, py);   // perpendicular projection
+  ctx.stroke();
+
+  // Optional: draw the projection point
+  ctx.fillStyle = "cyan";
+  ctx.beginPath();
+  ctx.arc(px, py, 4, 0, Math.PI * 2);
   ctx.fill();
 }
 

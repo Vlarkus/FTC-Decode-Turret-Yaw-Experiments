@@ -1,6 +1,6 @@
-import { Servo } from "./actuators/servo.js";
-import { Camera } from "./sensors/camera.js";
-import { Target } from "./world/target.js";
+import { Servo } from "./engine/actuators/servo.js";
+import { Camera } from "./engine/sensors/camera.js";
+import { Target } from "./engine/world/target.js";
 
 export class Simulation {
   constructor() {
@@ -8,43 +8,74 @@ export class Simulation {
     this.camera = new Camera();
     this.target = new Target(250, 0);
 
-    this.angleMin = 0;   // servo = 0  → -90 degrees
-    this.angleMax =  360;   // servo = 1  → +90 degrees
+    this.angleMin = 0;
+    this.angleMax = 360;
 
+    this.algorithms = {};
     this.activeAlgorithm = null;
+    this.activeAlgorithmName = "none";
+
+    this.loadAlgorithms();
   }
 
-  // Convert servo shaft position (0–1) into world heading in degrees
   get cameraHeading() {
     const p = this.servo.getPhysicalPosition();
     return this.angleMin + (this.angleMax - this.angleMin) * p;
   }
 
-  // Call this from main loop
   update(dt) {
-    // 1. Actuator physics
     this.servo.update(dt);
 
-    // 2. Sensor model
     this.camera.update(
       this.cameraHeading,
       this.target.getPosition(),
       { x: 0, y: 0 }
     );
 
-    // 3. Optional: run active algorithm
-    if (this.activeAlgorithm) {
-      this.activeAlgorithm({
-        servo: this.servo,
-        camera: this.camera,
-        target: this.target,
-        dt: dt
-      });
+    if (this.activeAlgorithm?.update) {
+      this.activeAlgorithm.update(this, dt);
     }
   }
 
-  // Allow UI to choose algorithm dynamically
-  setAlgorithm(algoFunction) {
-    this.activeAlgorithm = algoFunction;
+  setAlgorithm(name) {
+    this.activeAlgorithmName = name;
+    this.activeAlgorithm = this.algorithms[name] || null;
+
+    if (this.activeAlgorithm?.init) {
+      this.activeAlgorithm.init(this);
+    }
+  }
+
+  loadAlgorithms() {
+    const modules = import.meta.glob("./algorithms/*.js", {
+      eager: true
+    });
+
+    for (const path in modules) {
+      const mod = modules[path];
+      const algo = mod.default;
+
+      if (!algo) continue;
+
+      // function export → wrap
+      if (typeof algo === "function") {
+        const name = this.extractName(path);
+        this.algorithms[name] = {
+          name,
+          update: algo
+        };
+        continue;
+      }
+
+      // object export → must have update()
+      if (typeof algo === "object" && typeof algo.update === "function") {
+        const name = algo.name || this.extractName(path);
+        this.algorithms[name] = algo;
+      }
+    }
+  }
+
+  extractName(path) {
+    return path.split("/").pop().replace(".js", "");
   }
 }
