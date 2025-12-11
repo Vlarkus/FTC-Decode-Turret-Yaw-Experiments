@@ -4,22 +4,33 @@ export function renderScene(ctx, sim, width, height) {
   ctx.save();
   ctx.translate(width / 2, height / 2);
 
+  // 1. FOV (bottom)
   drawFOV(ctx, sim.cameraHeading, sim.camera.fov, width, height);
 
+  // 2. Pink commanded servo line
   const targetAngle = getServoTargetAngle(sim);
   drawServoTargetLine(ctx, targetAngle, width, height);
 
+  // 3. Orange and cyan lines
+  drawLineToTarget(ctx, sim);
+  drawPerpendicularProjection(ctx, sim);
+
+
+  // 4. GREEN CROSSHAIR ABOVE ALL AUX LINES
   drawCrosshair(ctx, sim.camera.crosshairAngle, width, height);
+  drawServoCenter(ctx, sim.cameraHeading, width, height);
+
+  drawServoDifferenceArc(ctx, sim.cameraHeading, targetAngle, 100);
+
+  // 5. Camera dot
   drawCamera(ctx);
 
-
-  drawLineToTarget(ctx, sim);          
-  drawPerpendicularProjection(ctx, sim); 
-
+  // 6. Target dot (very top)
   drawTarget(ctx, sim.target);
 
   ctx.restore();
 }
+
 
 
 
@@ -32,6 +43,30 @@ function drawCamera(ctx) {
   ctx.arc(0, 0, 6, 0, Math.PI * 2);
   ctx.fill();
 }
+
+function drawServoDifferenceArc(ctx, cameraHeadingDeg, servoTargetDeg, radius = 80) {
+  let startAngle = degToRad(cameraHeadingDeg);
+  let endAngle = degToRad(servoTargetDeg);
+
+  // Normalize to -π to π
+  let diff = ((endAngle - startAngle + Math.PI) % (Math.PI * 2)) - Math.PI;
+
+  // Compute final end based on shortest direction
+  endAngle = startAngle + diff;
+
+  ctx.strokeStyle = "yellow";
+  ctx.lineWidth = 2;
+  ctx.setLineDash([4, 3]);
+
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, startAngle, endAngle, diff < 0); // 'anticlockwise' if negative
+  ctx.stroke();
+
+  ctx.setLineDash([]);
+}
+
+
+
 
 
 // -----------------------------
@@ -65,16 +100,31 @@ function drawCrosshair(ctx, angleDeg, width, height) {
   const a = degToRad(angleDeg);
 
   ctx.strokeStyle = "lime";
-  ctx.lineWidth = 1.2;
-  ctx.setLineDash([10, 5]);
+  ctx.lineWidth = 1.4;
+  ctx.setLineDash([]);
+
 
   ctx.beginPath();
   ctx.moveTo(0, 0);
   ctx.lineTo(Math.cos(a) * long, Math.sin(a) * long);
   ctx.stroke();
-
-  ctx.setLineDash([]); // reset
 }
+
+function drawServoCenter(ctx, angleDeg, width, height) {
+  const long = Math.sqrt(width * width + height * height);
+  const a = degToRad(angleDeg);
+
+  ctx.strokeStyle = "red";
+  ctx.lineWidth = 1;
+  ctx.setLineDash([2, 2]);
+
+
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(Math.cos(a) * long, Math.sin(a) * long);
+  ctx.stroke();
+}
+
 
 
 // -----------------------------
@@ -107,7 +157,7 @@ function drawServoTargetLine(ctx, angleDeg, width, height) {
   const a = degToRad(angleDeg);
 
   ctx.strokeStyle = "magenta";      // pink line
-  ctx.lineWidth = 1.4;
+  ctx.lineWidth = 1.2;
   ctx.setLineDash([8, 4]);
 
   ctx.beginPath();
