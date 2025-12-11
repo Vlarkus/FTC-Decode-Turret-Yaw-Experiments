@@ -5,41 +5,37 @@ export const ServoDirection = {
 
 export class Servo {
   // ===== FTC-EXPOSED STATE =====
-  #commandedPosition = 0;     // Last setPosition() call [0–1]
+  #commandedPosition = 0;     // [0–1]
   #direction = ServoDirection.FORWARD;
   #scaledMin = 0;
   #scaledMax = 1;
   #enabled = true;
 
   // ===== PHYSICAL (HIDDEN) STATE =====
-  #physicalPosition = 0;      // True shaft position after physics [0–1]
-  #maxSpeed = 1.0;            // Units per second (0–1 range per second)
+  #physicalPosition = 0;      // [0–1]
+  #maxSpeed = 1.0;            // range per second (0–1 per second)
 
   constructor({ maxSpeed = 1.0 } = {}) {
     this.#maxSpeed = maxSpeed;
   }
 
   // ================================
-  // ✅ FTC SERVO API (PUBLIC)
+  // FTC API
   // ================================
 
   setPosition(p) {
     if (!this.#enabled) return;
 
-    // Clamp FTC input range
     p = clamp(p, 0, 1);
 
-    // Apply direction
     if (this.#direction === ServoDirection.REVERSE) {
       p = 1 - p;
     }
 
-    // Apply scaled output range
     this.#commandedPosition = lerp(this.#scaledMin, this.#scaledMax, p);
   }
 
   getPosition() {
-    // FTC returns the LAST COMMANDED position (not physical)
     return this.#commandedPosition;
   }
 
@@ -57,7 +53,19 @@ export class Servo {
   }
 
   // ================================
-  // ✅ PHYSICS UPDATE (HIDDEN)
+  // SPEED CONTROL (NEW)
+  // ================================
+
+  setMaxSpeed(speed) {
+    this.#maxSpeed = Math.max(0, speed);
+  }
+
+  getMaxSpeed() {
+    return this.#maxSpeed;
+  }
+
+  // ================================
+  // PHYSICS UPDATE
   // ================================
 
   update(dt_seconds) {
@@ -70,18 +78,13 @@ export class Servo {
     this.#physicalPosition += step;
   }
 
-  // ================================
-  // ✅ READ TRUE PHYSICAL POSITION
-  // (USED BY TURRET / CAMERA ONLY)
-  // ================================
-
   getPhysicalPosition() {
     return this.#physicalPosition;
   }
 }
 
 // ================================
-// ✅ SMALL UTILITIES (LOCAL)
+// Utilities
 // ================================
 
 function clamp(x, min, max) {

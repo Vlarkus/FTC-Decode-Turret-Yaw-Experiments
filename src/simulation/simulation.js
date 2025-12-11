@@ -8,8 +8,8 @@ export class Simulation {
     this.camera = new Camera();
     this.target = new Target(250, 0);
 
-    this.angleMin = -90;   // servo = 0  → -90 degrees
-    this.angleMax =  90;   // servo = 1  → +90 degrees
+    this.angleMin = 0;   // servo = 0  → -90 degrees
+    this.angleMax =  360;   // servo = 1  → +90 degrees
 
     this.activeAlgorithm = null;
   }

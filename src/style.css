@@ -1,25 +1,165 @@
+/* ============================================================
+   GLOBAL RESET + BASE
+   ============================================================ */
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  background: black;
-  color: white;
-  font-family: Arial, sans-serif;
+  font-family: sans-serif;
+  background: #111;
+  color: #eee;
+  overflow: hidden;
 }
 
-#sidepanel {
-  position: fixed;
-  left: 0;
-  top: 0;
-  width: 260px;
+#app {
+  width: 100vw;
   height: 100vh;
-  background: #1e1e1e;
-  padding: 12px;
-  box-sizing: border-box;
-  border-right: 2px solid #444;
 }
 
+/* ============================================================
+   LAYOUT (Sidepanel + Canvas)
+   ============================================================ */
+#layout {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ============================================================
+   SIDEPANEL – compact and clean
+   ============================================================ */
+#sidepanel {
+  width: 260px;
+  min-width: 40px;
+  background: #1c1c1c;
+  border-right: 1px solid #333;
+  padding: 14px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 10;
+  transition: width 0.25s ease;
+  color: #eee;
+}
+
+/* Collapsed mode */
+#sidepanel.collapsed {
+  width: 40px;
+  padding: 10px;
+  overflow: hidden;
+}
+
+/* Sidepanel Header */
+#sidepanel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+#sidepanel-header h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+/* Collapse button */
+#collapseBtn {
+  background: #333;
+  color: #eee;
+  border: 1px solid #555;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+#collapseBtn:hover {
+  background: #444;
+}
+
+/* ============================================================
+   UI SECTIONS
+   ============================================================ */
+.ui-section {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid #2a2a2a;
+}
+
+.ui-section h3 {
+  margin: 0 0 6px 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* Labels */
+label {
+  font-size: 13px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* Buttons */
+button {
+  background: #333;
+  border: 1px solid #555;
+  color: #eee;
+  padding: 4px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 13px;
+  margin-right: 6px;
+}
+
+button:hover {
+  background: #444;
+}
+
+/* Checkbox row */
+.checkbox-inline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 13px;
+}
+
+/* Sliders */
+input[type="range"] {
+  width: 100%;
+}
+
+/* Number inputs */
+input[type="number"] {
+  width: 100%;
+  padding: 4px;
+  background: #222;
+  border: 1px solid #555;
+  color: #eee;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+/* ============================================================
+   CANVAS AREA
+   ============================================================ */
+#canvas-container {
+  flex-grow: 1;
+  position: relative;
+  background: #000;
+  overflow: hidden;
+  z-index: 1;
+}
+
+/* Canvas must fill its container exactly */
 #mainCanvas {
   position: absolute;
-  left: 260px;
-  top: 0;
-  background: #111;
+  inset: 0;       /* top: 0; bottom: 0; left: 0; right: 0 */
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 1;
 }
