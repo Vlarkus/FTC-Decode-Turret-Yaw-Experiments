@@ -1,20 +1,21 @@
 import "./style.css";
-import { initSidePanel } from "./ui/sidepanel/sidepanel.js";
+import { Simulation } from "./simulation/simulation.js";
 import { initCanvas, renderFrame } from "./graphics/canvas.js";
+
+const sim = new Simulation();
 
 const app = document.querySelector("#app");
 app.innerHTML = "";
+initCanvas(app, sim);
 
-// Initialize UI
-initSidePanel(app);
+let last = performance.now();
+function loop(now) {
+  const dt = (now - last) / 1000;
+  last = now;
 
-// Initialize Canvas
-initCanvas(app);
+  sim.update(dt);
+  renderFrame(sim);
 
-// Render Loop
-function loop() {
-  renderFrame();
   requestAnimationFrame(loop);
 }
-
 requestAnimationFrame(loop);

@@ -1,6 +1,3 @@
-import { initSliders } from "./sliders.js";
-import { initReadouts } from "./readouts.js";
-
 export function initSidePanel(appElem) {
   const panel = document.createElement("div");
   panel.id = "sidepanel";
@@ -18,6 +15,4 @@ export function initSidePanel(appElem) {
 
   appElem.appendChild(panel);
 
-  initSliders();
-  initReadouts();
 }
