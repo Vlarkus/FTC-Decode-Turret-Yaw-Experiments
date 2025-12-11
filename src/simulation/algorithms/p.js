@@ -1,22 +1,22 @@
 export default {
   name: "p",
 
+  params: {
+    kP: { value: 0.0003, min: 0, max: 0.01, step: 0.00001 }
+  },
+
+  init(sim) {},
+
   update(sim, dt) {
     const { camera, servo } = sim;
+    const p = this.params;
 
-    // Target must be visible
     if (!camera.tv) return;
 
-    // Error in degrees from crosshair
     const error = camera.tx;
+    let output = p.kP.value * error;
 
-    // Proportional gain (adjustable)
-    const kP = 0.0001;
-
-    // Compute new commanded servo position
-    const newPos = servo.getPosition() + kP * error;
-
-    // FTC-style: clamp automatically handled by servo.setPosition()
+    const newPos = servo.getPosition() + output;
     servo.setPosition(newPos);
   }
 };

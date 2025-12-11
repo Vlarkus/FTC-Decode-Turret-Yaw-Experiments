@@ -37,6 +37,17 @@ export class Simulation {
     }
   }
 
+  reset() {
+    this.servo = new Servo({ maxSpeed: 1.0 });
+    this.camera = new Camera();
+    this.target = new Target(250, 0);
+
+    if (this.activeAlgorithm?.init) {
+      this.activeAlgorithm.init(this);
+    }
+  }
+
+
   setAlgorithm(name) {
     this.activeAlgorithmName = name;
     this.activeAlgorithm = this.algorithms[name] || null;

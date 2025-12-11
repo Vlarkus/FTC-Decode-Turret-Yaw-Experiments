@@ -1,3 +1,5 @@
+import { buildAlgorithmTunables } from "./algorithmTunables.js";
+
 export function algorithmSelectorSection(parent, sim) {
   const div = document.createElement("div");
   div.className = "ui-section";
@@ -20,19 +22,16 @@ export function algorithmSelectorSection(parent, sim) {
   parent.appendChild(div);
 
   const select = div.querySelector("#algoSelect");
-
-  // If algorithms exist, set the initial one; otherwise disable dropdown
-  if (hasAlgorithms) {
-    select.value = sim.activeAlgorithmName;
-    select.disabled = false;
-  } else {
-    select.value = "none";
-    select.disabled = true;
-  }
+  select.value = sim.activeAlgorithmName;
 
   select.addEventListener("change", e => {
-    const name = e.target.value;
-    sim.setAlgorithm(name);
-    div.querySelector("#activeAlgo").textContent = name;
+    const algoName = e.target.value;
+
+    sim.setAlgorithm(algoName);
+    div.querySelector("#activeAlgo").textContent = algoName;
+
+    // 🔥 REQUIRED FIX — rebuild tunables UI
+    const tunablesDiv = document.getElementById("algorithm-tunables");
+    buildAlgorithmTunables(sim.activeAlgorithm, tunablesDiv);
   });
 }

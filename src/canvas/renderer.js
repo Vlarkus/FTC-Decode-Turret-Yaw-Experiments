@@ -5,8 +5,13 @@ export function renderScene(ctx, sim, width, height) {
   ctx.translate(width / 2, height / 2);
 
   drawFOV(ctx, sim.cameraHeading, sim.camera.fov, width, height);
+
+  const targetAngle = getServoTargetAngle(sim);
+  drawServoTargetLine(ctx, targetAngle, width, height);
+
   drawCrosshair(ctx, sim.camera.crosshairAngle, width, height);
   drawCamera(ctx);
+
 
   drawLineToTarget(ctx, sim);          
   drawPerpendicularProjection(ctx, sim); 
@@ -97,6 +102,28 @@ function drawLineToTarget(ctx, sim) {
   ctx.setLineDash([]); // reset
 }
 
+function drawServoTargetLine(ctx, angleDeg, width, height) {
+  const long = Math.sqrt(width * width + height * height);
+  const a = degToRad(angleDeg);
+
+  ctx.strokeStyle = "magenta";      // pink line
+  ctx.lineWidth = 1.4;
+  ctx.setLineDash([8, 4]);
+
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(Math.cos(a) * long, Math.sin(a) * long);
+  ctx.stroke();
+
+  ctx.setLineDash([]); 
+}
+
+function getServoTargetAngle(sim) {
+  const p = sim.servo.getPosition(); // commanded [0–1]
+  return sim.angleMin + (sim.angleMax - sim.angleMin) * p;
+}
+
+
 function drawPerpendicularProjection(ctx, sim) {
   if (!sim.camera.tv) return;
 
@@ -107,10 +134,10 @@ function drawPerpendicularProjection(ctx, sim) {
   const tx = sim.target.x;
   const ty = sim.target.y;
 
-  // Projection scalar (dot product on unit ray)
   const proj = tx * dirX + ty * dirY;
 
-  // Point on the crosshair line
+  if (proj < 0) return;
+
   const px = dirX * proj;
   const py = dirY * proj;
 
@@ -119,16 +146,16 @@ function drawPerpendicularProjection(ctx, sim) {
   ctx.lineWidth = 1.5;
 
   ctx.beginPath();
-  ctx.moveTo(tx, ty);   // target
-  ctx.lineTo(px, py);   // perpendicular projection
+  ctx.moveTo(tx, ty);
+  ctx.lineTo(px, py);
   ctx.stroke();
 
-  // Optional: draw the projection point
   ctx.fillStyle = "cyan";
   ctx.beginPath();
   ctx.arc(px, py, 4, 0, Math.PI * 2);
   ctx.fill();
 }
+
 
 
 // -----------------------------

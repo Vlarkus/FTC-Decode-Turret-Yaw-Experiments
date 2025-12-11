@@ -1,6 +1,5 @@
 export default {
   name: "none",
-
-  update(sim, dt) {
-  }
+  init(sim) {},
+  update(sim, dt) {}
 };
