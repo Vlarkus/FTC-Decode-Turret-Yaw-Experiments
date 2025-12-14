@@ -11,7 +11,7 @@ export class Simulation {
     this.target = new Target(250, 0);
 
     this.angleMin = 0;
-    this.angleMax = 288;
+    this.angleMax = 300;
 
     this.algorithms = {};
     this.activeAlgorithm = null;
